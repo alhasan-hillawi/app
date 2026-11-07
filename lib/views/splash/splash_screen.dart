@@ -360,7 +360,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                             textDirection: TextDirection.rtl,
                             style: GoogleFonts.cairo(
                               fontSize: subtitleFontSize,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.bold,
                               color: const Color(0xFFE2E8F0),
                               letterSpacing: 0.8,
                               height: 1.35,
@@ -526,3 +526,4 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     );
   }
 }
+
