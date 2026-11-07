@@ -13,6 +13,7 @@ import 'services/volume_service.dart';
 import 'views/common/app_error_dialog.dart';
 import 'views/setup/pairing_screen.dart';
 import 'views/player/signage_player_screen.dart';
+import 'views/splash/splash_screen.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -103,7 +104,10 @@ void main() async {
     initialScreen = SignagePlayerScreen(apiService: apiService);
   }
 
-  runApp(DigitalSignageApp(apiService: apiService, initialScreen: initialScreen));
+  runApp(DigitalSignageApp(
+    apiService: apiService,
+    initialScreen: initialScreen,
+  ));
 }
 
 class DigitalSignageApp extends StatelessWidget {
@@ -120,13 +124,17 @@ class DigitalSignageApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,
+        fontFamily: 'Cairo',
         scaffoldBackgroundColor: const Color(0xFF0F172A),
         colorScheme: const ColorScheme.dark(
           primary: Colors.indigoAccent,
           surface: Color(0xFF1E293B),
         ),
       ),
-      home: initialScreen,
+      home: SplashScreen(
+        apiService: apiService,
+        nextScreen: initialScreen,
+      ),
     );
   }
 }
