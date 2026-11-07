@@ -1,4 +1,4 @@
-name: Build Windows App
+name: Build Windows & Android Apps
 
 on:
   push:
@@ -8,8 +8,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    name: Build Windows Release
+  build_windows:
+    name: Build Windows Release (.exe)
     runs-on: windows-latest
 
     steps:
@@ -40,3 +40,35 @@ jobs:
           path: signage_player_windows.zip
           retention-days: 14
 
+  build_android:
+    name: Build Android APK (.apk)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Get Dependencies
+        run: flutter pub get
+
+      - name: Build Android APK
+        run: flutter build apk --release
+
+      - name: Upload Android APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SignagePlayer-Android-APK
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 14
