@@ -1,7 +1,7 @@
 name: signage_player
 description: Enterprise Digital Signage OS Client Player for Android TV, Tablets & Displays.
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.1.0+2
 
 environment:
   sdk: '>=3.2.0 <4.0.0'

@@ -79,7 +79,7 @@ class _PairingScreenState extends State<PairingScreen> {
         'device_name': "${_specs['brand'] ?? 'Player'} - ${_specs['model'] ?? 'Display'}",
         'model': _specs['model'] ?? 'Unknown',
         'os_info': _specs['os'] ?? 'Android',
-        'app_version': _specs['app_version'] ?? '1.0.0+1',
+        'app_version': _specs['app_version'] ?? '1.1.0',
       };
 
       final response = await widget.apiService.pairDevice(payload);
@@ -540,6 +540,59 @@ class _PairingScreenState extends State<PairingScreen> {
                                       blurRadius: 10,
                                     ),
                                   ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        SizedBox(height: verticalPadding * 0.65),
+
+                        // 5. شارة إصدار النسخة 1.1 بأسلوب تقني عصري وأنيق
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF0C1427).withValues(alpha: 0.70),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.14),
+                              width: 1.0,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.40),
+                                blurRadius: 12,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 7,
+                                height: 7,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF10B981),
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFF10B981).withValues(alpha: 0.7),
+                                      blurRadius: 8,
+                                      spreadRadius: 1.5,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                "إصدار النسخة 1.1",
+                                textDirection: TextDirection.rtl,
+                                style: GoogleFonts.cairo(
+                                  fontSize: (websiteFontSize * 0.85).clamp(11.0, 14.0),
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF94A3B8),
+                                  letterSpacing: 0.5,
                                 ),
                               ),
                             ],
