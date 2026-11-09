@@ -513,66 +513,25 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
                 ),
 
               // ==============================================================
-              // الطبقة 3: مؤشر نبض واستقرار الشبكة (Telemetry Beacon)
-              // ==============================================================
-              AnimatedPositioned(
-                duration: const Duration(milliseconds: 300),
-                top: 20,
-                right: _showControls ? 130 : 20,
-                child: _buildTelemetryBeacon(),
-              ),
-
-              // ==============================================================
-              // الطبقة 4: أزرار التحكم العائمة (الإعدادات + توسيع/تقليص الفيديو)
+              // الطبقة 3: زر الإعدادات فقط (يظهر عند التفاعل ويختفي تلقائياً)
               // ==============================================================
               AnimatedPositioned(
                 duration: const Duration(milliseconds: 300),
                 top: 16,
-                right: _showControls ? 16 : -120,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // زر التوسيع والتقليص السريع
-                    InkWell(
-                      onTap: _cycleFitMode,
-                      borderRadius: BorderRadius.circular(30),
-                      child: Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.70),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: const Color(0xFF00E5FF).withValues(alpha: 0.5)),
-                          boxShadow: const [BoxShadow(color: Colors.black45, blurRadius: 10)],
-                        ),
-                        child: ValueListenableBuilder<VideoFitMode>(
-                          valueListenable: VideoFitService().fitModeNotifier,
-                          builder: (context, _, __) {
-                            return Icon(
-                              VideoFitService().currentModeIcon,
-                              color: const Color(0xFF00E5FF),
-                              size: 22,
-                            );
-                          },
-                        ),
-                      ),
+                right: _showControls ? 16 : -60,
+                child: InkWell(
+                  onTap: _openSettings,
+                  borderRadius: BorderRadius.circular(30),
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.65),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white24),
+                      boxShadow: const [BoxShadow(color: Colors.black45, blurRadius: 10)],
                     ),
-                    const SizedBox(width: 10),
-                    // زر الإعدادات العامة
-                    InkWell(
-                      onTap: _openSettings,
-                      borderRadius: BorderRadius.circular(30),
-                      child: Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.65),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white24),
-                          boxShadow: const [BoxShadow(color: Colors.black45, blurRadius: 10)],
-                        ),
-                        child: const Icon(Icons.settings, color: Colors.white, size: 22),
-                      ),
-                    ),
-                  ],
+                    child: const Icon(Icons.settings, color: Colors.white, size: 22),
+                  ),
                 ),
               ),
 
@@ -664,84 +623,6 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  // مؤشر النبض اللحظي وفحص المزامنة مع النظام
-  Widget _buildTelemetryBeacon() {
-    return ValueListenableBuilder<DeviceSyncStatus>(
-      valueListenable: _telemetryService.statusNotifier,
-      builder: (context, status, child) {
-        Color beaconColor;
-        String tip;
-        switch (status) {
-          case DeviceSyncStatus.onlineSynced:
-            beaconColor = Colors.greenAccent;
-            tip = "متصل ومتزامن (كل 10ث)";
-            break;
-          case DeviceSyncStatus.syncing:
-            beaconColor = Colors.cyanAccent;
-            tip = "جارٍ المزامنة...";
-            break;
-          case DeviceSyncStatus.laggingNeedsSync:
-            beaconColor = Colors.amberAccent;
-            tip = "تحديث معلق";
-            break;
-          case DeviceSyncStatus.offlineNoNetwork:
-            beaconColor = Colors.redAccent;
-            tip = "يطلب الاتصال بالإنترنت";
-            break;
-          case DeviceSyncStatus.serverUnreachable:
-            beaconColor = Colors.orangeAccent;
-            tip = "تعذر الوصول للنظام (أوفلاين)";
-            break;
-        }
-
-        return Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(14),
-            onTap: () async {
-              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    "جارٍ فحص الاتصال وإعادة المزامنة مع النظام...",
-                    style: GoogleFonts.cairo(fontSize: 12, color: Colors.white),
-                  ),
-                  backgroundColor: const Color(0xFF1E293B),
-                  duration: const Duration(seconds: 2),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-              await _telemetryService.triggerManualSync();
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.65),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Colors.white12),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(color: beaconColor, shape: BoxShape.circle),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    tip,
-                    style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
     );
   }
 
