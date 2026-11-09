@@ -92,7 +92,8 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
   void _startInactivityCountdown() {
     _inactivityCountdownTimer?.cancel();
     _inactivitySecondsRemaining = 60;
-    _inactivityCountdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    _inactivityCountdownTimer =
+        Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) return;
       if (_config != null) {
         timer.cancel();
@@ -108,7 +109,8 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
           _inactivitySecondsRemaining = 0;
         });
         _promptResetAndRestart(
-          reason: "لم يستجب السيرفر خلال دقيقة كاملة، أو قد يكون تم فصل الجهاز من النظام.",
+          reason:
+              "لم يستجب السيرفر خلال دقيقة كاملة، أو قد يكون تم فصل الجهاز من النظام.",
         );
       }
     });
@@ -129,7 +131,8 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
       final configJson = data['configuration'];
 
       if (configJson != null) {
-        final newConfig = ScreenConfig.fromJson(Map<String, dynamic>.from(configJson as Map));
+        final newConfig =
+            ScreenConfig.fromJson(Map<String, dynamic>.from(configJson as Map));
         final confirmedRev = data['revision'] ?? newConfig.revision;
         _telemetryService.localRevisionNotifier.value = confirmedRev;
 
@@ -155,7 +158,8 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
       if (mounted) setState(() => _isLoading = false);
 
       // في حال كان الرد 401 Unauthorized أو 404 (تم فصل الجهاز من السيرفر)
-      if (e is DioException && (e.response?.statusCode == 401 || e.response?.statusCode == 404)) {
+      if (e is DioException &&
+          (e.response?.statusCode == 401 || e.response?.statusCode == 404)) {
         if (mounted) {
           _promptResetAndRestart(
             reason: "تم إلغاء اقتران هذا الجهاز أو إزالته من لوحة التحكم.",
@@ -191,12 +195,16 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
-            const Icon(Icons.settings_backup_restore_rounded, color: Colors.amberAccent, size: 28),
+            const Icon(Icons.settings_backup_restore_rounded,
+                color: Colors.amberAccent, size: 28),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 "إعادة التهيئة والبدء من جديد",
-                style: GoogleFonts.cairo(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 16),
+                style: GoogleFonts.cairo(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    fontSize: 16),
               ),
             ),
           ],
@@ -207,7 +215,8 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
           children: [
             Text(
               reason ?? "لم يتم استلام أي استجابة من الخادم خلال دقيقة كاملة.",
-              style: GoogleFonts.cairo(color: Colors.white70, fontSize: 13, height: 1.5),
+              style: GoogleFonts.cairo(
+                  color: Colors.white70, fontSize: 13, height: 1.5),
             ),
             const SizedBox(height: 14),
             Container(
@@ -219,7 +228,8 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
               ),
               child: Text(
                 "• عند اختيار البدء من جديد: سيقوم التطبيق بتنظيف ذاكرة الكاش، وحذف التوكن القديم، والانتقال لتحديث رابط السيرفر وإعادة إدخال رمز الاقتران.\n• إذا لم يتم اختيار البدء من جديد: لن يحدث أي تغيير للتطبيق والنظام وسيبقى في وضع الانتظار.",
-                style: GoogleFonts.cairo(color: Colors.white60, fontSize: 11, height: 1.5),
+                style: GoogleFonts.cairo(
+                    color: Colors.white60, fontSize: 11, height: 1.5),
               ),
             ),
           ],
@@ -227,18 +237,21 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text("إلغاء / مواصلة الانتظار", style: GoogleFonts.cairo(color: Colors.white60)),
+            child: Text("إلغاء / مواصلة الانتظار",
+                style: GoogleFonts.cairo(color: Colors.white60)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.indigoAccent,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             ),
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(
               "البدء من جديد",
-              style: GoogleFonts.cairo(color: Colors.white, fontWeight: FontWeight.bold),
+              style: GoogleFonts.cairo(
+                  color: Colors.white, fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -277,12 +290,14 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
     if (mounted) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => ServerConfigScreen(apiService: widget.apiService)),
+        MaterialPageRoute(
+            builder: (_) => ServerConfigScreen(apiService: widget.apiService)),
       );
     }
   }
 
-  bool _isPlaylistChanged(List<PlaylistItemModel> oldItems, List<PlaylistItemModel> newItems) {
+  bool _isPlaylistChanged(
+      List<PlaylistItemModel> oldItems, List<PlaylistItemModel> newItems) {
     if (oldItems.length != newItems.length) return true;
     for (int i = 0; i < oldItems.length; i++) {
       final oldItem = oldItems[i];
@@ -330,9 +345,11 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
   void _applyOrientation(String orientation) {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     if (orientation == 'portrait') {
-      SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+      SystemChrome.setPreferredOrientations(
+          [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
     } else {
-      SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]);
+      SystemChrome.setPreferredOrientations(
+          [DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]);
     }
   }
 
@@ -355,7 +372,8 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
     final int duration = currentItem.duration > 0 ? currentItem.duration : 15;
 
     // تسخين وتحميل المقطع التالي في الذاكرة مسبقاً لضمان 0ms انتقال بدون أي تأخير أو فراغ
-    VideoPreloadManager().preloadNextItem(items, _currentItemIndex % items.length);
+    VideoPreloadManager()
+        .preloadNextItem(items, _currentItemIndex % items.length);
 
     _itemDurationTimer = Timer(Duration(seconds: duration), () {
       if (mounted && items.isNotEmpty) {
@@ -373,7 +391,8 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
       _telemetryService.stop();
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => PairingScreen(apiService: widget.apiService)),
+        MaterialPageRoute(
+            builder: (_) => PairingScreen(apiService: widget.apiService)),
       );
     });
   }
@@ -405,12 +424,16 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
                 const SizedBox(
                   width: 38,
                   height: 38,
-                  child: CircularProgressIndicator(strokeWidth: 3, color: Colors.indigoAccent),
+                  child: CircularProgressIndicator(
+                      strokeWidth: 3, color: Colors.indigoAccent),
                 ),
                 const SizedBox(height: 20),
                 Text(
                   "جارٍ جلب إعدادات ومزامنة الشاشة...",
-                  style: GoogleFonts.cairo(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                  style: GoogleFonts.cairo(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -432,27 +455,36 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.indigoAccent,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 10),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                       onPressed: () {
                         setState(() => _isLoading = true);
                         _initialSync();
                       },
                       icon: const Icon(Icons.sync_rounded, size: 18),
-                      label: Text("فحص المزامنة الآن", style: GoogleFonts.cairo(fontSize: 13, fontWeight: FontWeight.bold)),
+                      label: Text("فحص المزامنة الآن",
+                          style: GoogleFonts.cairo(
+                              fontSize: 13, fontWeight: FontWeight.bold)),
                     ),
                     const SizedBox(width: 12),
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.white70,
                         side: const BorderSide(color: Colors.white24),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 10),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                       onPressed: () => _promptResetAndRestart(),
-                      icon: const Icon(Icons.settings_backup_restore_rounded, size: 18, color: Colors.amberAccent),
-                      label: Text("إعادة البدء الآن", style: GoogleFonts.cairo(fontSize: 13, fontWeight: FontWeight.bold)),
+                      icon: const Icon(Icons.settings_backup_restore_rounded,
+                          size: 18, color: Colors.amberAccent),
+                      label: Text("إعادة البدء الآن",
+                          style: GoogleFonts.cairo(
+                              fontSize: 13, fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),
@@ -464,15 +496,18 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
     }
 
     final items = _config!.playlist?.items ?? [];
-    final currentItem = items.isNotEmpty ? items[_currentItemIndex % items.length] : null;
-    final isEmergency = _config!.isEmergencyActive && _config!.emergency != null;
+    final currentItem =
+        items.isNotEmpty ? items[_currentItemIndex % items.length] : null;
+    final isEmergency =
+        _config!.isEmergencyActive && _config!.emergency != null;
 
     return Scaffold(
       backgroundColor: const Color(0xFF020617),
       body: GestureDetector(
         behavior: HitTestBehavior.translucent,
         onTap: _resetControlsTimer,
-        onDoubleTap: _cycleFitMode, // النقر المزدوج لتبديل نمط التوسيع والتقليص وعرض كامل الفيديو
+        onDoubleTap:
+            _cycleFitMode, // النقر المزدوج لتبديل نمط التوسيع والتقليص وعرض كامل الفيديو
         child: Focus(
           autofocus: true,
           onKeyEvent: (node, event) {
@@ -501,7 +536,8 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
                 )
               else
                 const Center(
-                  child: Text("لا توجد وسائط مجدولة للعرض حالياً", style: TextStyle(color: Colors.white38)),
+                  child: Text("لا توجد وسائط مجدولة للعرض حالياً",
+                      style: TextStyle(color: Colors.white38)),
                 ),
 
               // ==============================================================
@@ -533,9 +569,12 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
                       color: Colors.black.withValues(alpha: 0.65),
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white24),
-                      boxShadow: const [BoxShadow(color: Colors.black45, blurRadius: 10)],
+                      boxShadow: const [
+                        BoxShadow(color: Colors.black45, blurRadius: 10)
+                      ],
                     ),
-                    child: const Icon(Icons.settings, color: Colors.white, size: 22),
+                    child: const Icon(Icons.settings,
+                        color: Colors.white, size: 22),
                   ),
                 ),
               ),
@@ -554,8 +593,10 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
                       enabled: _config!.tickerEnabled,
                       position: _config!.tickerPosition,
                       text: _config!.tickerText,
-                      textColor: TickerConfigModel.parseColor(_config!.tickerTextColor, Colors.white),
-                      backgroundColor: TickerConfigModel.parseColor(_config!.tickerBackground, const Color(0xFFB91C1C)),
+                      textColor: TickerConfigModel.parseColor(
+                          _config!.tickerTextColor, Colors.white),
+                      backgroundColor: TickerConfigModel.parseColor(
+                          _config!.tickerBackground, const Color(0xFFB91C1C)),
                       speedSeconds: _config!.tickerSpeedSeconds,
                       direction: _config!.tickerDirection,
                       fontSize: _config!.tickerFontSize,
@@ -568,7 +609,8 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
               // ==============================================================
               if (isEmergency)
                 Positioned.fill(
-                  child: EmergencyAlertOverlayWidget(alert: _config!.emergency!),
+                  child:
+                      EmergencyAlertOverlayWidget(alert: _config!.emergency!),
                 ),
 
               // ==============================================================
@@ -581,17 +623,20 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
                   right: 0,
                   child: Center(
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 10),
                       decoration: BoxDecoration(
                         color: const Color(0xFF0C1427).withValues(alpha: 0.90),
                         borderRadius: BorderRadius.circular(30),
                         border: Border.all(
-                          color: const Color(0xFF00E5FF).withValues(alpha: 0.60),
+                          color:
+                              const Color(0xFF00E5FF).withValues(alpha: 0.60),
                           width: 1.5,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF00E5FF).withValues(alpha: 0.25),
+                            color:
+                                const Color(0xFF00E5FF).withValues(alpha: 0.25),
                             blurRadius: 20,
                             spreadRadius: 2,
                           ),
@@ -647,12 +692,15 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
         onCompleted: _nextSlide,
       );
     } else if (item.isSplitScreen) {
-      final rawZones = (item.customContent?['zones'] ?? item.customContent?['videos']) as List? ?? [];
+      final rawZones = (item.customContent?['zones'] ??
+              item.customContent?['videos']) as List? ??
+          [];
       final List<SplitZone> zones;
       final currentBase = ApiService.activeBaseUrl;
       if (rawZones.isNotEmpty) {
         zones = rawZones
-            .map((z) => SplitZone.fromJson(Map<String, dynamic>.from(z as Map), baseUrl: currentBase))
+            .map((z) => SplitZone.fromJson(Map<String, dynamic>.from(z as Map),
+                baseUrl: currentBase))
             .toList();
       } else {
         zones = item.splitZones
@@ -683,7 +731,9 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
       String? htmlContent;
       if (item.customContent != null) {
         htmlContent = item.customContent!['html']?.toString() ??
-            (item.type == 'html' ? item.customContent!['content']?.toString() : null);
+            (item.type == 'html'
+                ? item.customContent!['content']?.toString()
+                : null);
       }
       return WebViewSignageWidget(
         key: ValueKey("web_${item.id}"),
