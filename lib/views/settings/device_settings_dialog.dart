@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../services/api_service.dart';
 import '../../services/device_info_service.dart';
 import '../../services/cache_cleaner_service.dart';
+import '../../services/video_fit_service.dart';
 import '../../services/volume_service.dart';
 import '../setup/server_config_screen.dart';
 
@@ -362,7 +363,38 @@ class _DeviceSettingsDialogState extends State<DeviceSettingsDialog> {
                     ),
                     const SizedBox(height: 10),
 
-                    // أ. تدوير الشاشة
+                    // أ. نمط توسيع وتقليص الفيديو على حجم الشاشة
+                    ValueListenableBuilder<VideoFitMode>(
+                      valueListenable: VideoFitService().fitModeNotifier,
+                      builder: (context, mode, _) {
+                        return ListTile(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14)),
+                          tileColor: const Color(0xFF0F172A),
+                          leading: Icon(VideoFitService().currentModeIcon,
+                              color: const Color(0xFF00E5FF)),
+                          title: Text("ملاءمة وتوسيع الفيديو على الشاشة:",
+                              style: GoogleFonts.cairo(
+                                  color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                          subtitle: Text(VideoFitService().currentModeTitleAr,
+                              style: GoogleFonts.cairo(
+                                  color: const Color(0xFF00E5FF), fontSize: 11)),
+                          trailing: ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF0F2847),
+                                side: const BorderSide(color: Color(0xFF00E5FF))),
+                            onPressed: () => VideoFitService().cycleNextMode(),
+                            icon: const Icon(Icons.sync, size: 16, color: Color(0xFF00E5FF)),
+                            label: Text("تبديل النمط",
+                                style: GoogleFonts.cairo(
+                                    color: Colors.white, fontSize: 12)),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 10),
+
+                    // ب. تدوير الشاشة
                     ListTile(
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14)),

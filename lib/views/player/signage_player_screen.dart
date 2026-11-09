@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../services/api_service.dart';
 import '../../services/cache_cleaner_service.dart';
 import '../../services/media_cache_service.dart';
+import '../../services/video_fit_service.dart';
 import '../../services/telemetry_heartbeat_service.dart';
 import '../../services/video_preload_manager.dart';
 import '../../models/signage_models.dart';
@@ -48,6 +49,23 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
   bool _showControls = true;
   Timer? _controlsHideTimer;
   Timer? _initialSyncRetryTimer;
+
+  // إشعار نمط توسيع وتقليص الفيديو (HUD Toast)
+  String? _fitModeNotification;
+  Timer? _fitNotificationTimer;
+
+  void _cycleFitMode() async {
+    await VideoFitService().cycleNextMode();
+    _showFitNotification(VideoFitService().currentModeTitleAr);
+  }
+
+  void _showFitNotification(String message) {
+    _fitNotificationTimer?.cancel();
+    setState(() => _fitModeNotification = message);
+    _fitNotificationTimer = Timer(const Duration(milliseconds: 2400), () {
+      if (mounted) setState(() => _fitModeNotification = null);
+    });
+  }
 
   @override
   void initState() {
@@ -359,6 +377,7 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
   void dispose() {
     _initialSyncRetryTimer?.cancel();
     _inactivityCountdownTimer?.cancel();
+    _fitNotificationTimer?.cancel();
     _telemetryService.stop();
     _itemDurationTimer?.cancel();
     _controlsHideTimer?.cancel();
@@ -448,6 +467,7 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
       body: GestureDetector(
         behavior: HitTestBehavior.translucent,
         onTap: _resetControlsTimer,
+        onDoubleTap: _cycleFitMode, // النقر المزدوج لتبديل نمط التوسيع والتقليص وعرض كامل الفيديو
         child: Focus(
           autofocus: true,
           onKeyEvent: (node, event) {
@@ -498,30 +518,61 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
               AnimatedPositioned(
                 duration: const Duration(milliseconds: 300),
                 top: 20,
-                right: _showControls ? 80 : 20,
+                right: _showControls ? 130 : 20,
                 child: _buildTelemetryBeacon(),
               ),
 
               // ==============================================================
-              // الطبقة 4: زر الإعدادات العائم
+              // الطبقة 4: أزرار التحكم العائمة (الإعدادات + توسيع/تقليص الفيديو)
               // ==============================================================
               AnimatedPositioned(
                 duration: const Duration(milliseconds: 300),
                 top: 16,
-                right: _showControls ? 16 : -60,
-                child: InkWell(
-                  onTap: _openSettings,
-                  borderRadius: BorderRadius.circular(30),
-                  child: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.65),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white24),
-                      boxShadow: const [BoxShadow(color: Colors.black45, blurRadius: 10)],
+                right: _showControls ? 16 : -120,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // زر التوسيع والتقليص السريع
+                    InkWell(
+                      onTap: _cycleFitMode,
+                      borderRadius: BorderRadius.circular(30),
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.70),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: const Color(0xFF00E5FF).withValues(alpha: 0.5)),
+                          boxShadow: const [BoxShadow(color: Colors.black45, blurRadius: 10)],
+                        ),
+                        child: ValueListenableBuilder<VideoFitMode>(
+                          valueListenable: VideoFitService().fitModeNotifier,
+                          builder: (context, _, __) {
+                            return Icon(
+                              VideoFitService().currentModeIcon,
+                              color: const Color(0xFF00E5FF),
+                              size: 22,
+                            );
+                          },
+                        ),
+                      ),
                     ),
-                    child: const Icon(Icons.settings, color: Colors.white, size: 22),
-                  ),
+                    const SizedBox(width: 10),
+                    // زر الإعدادات العامة
+                    InkWell(
+                      onTap: _openSettings,
+                      borderRadius: BorderRadius.circular(30),
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.65),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white24),
+                          boxShadow: const [BoxShadow(color: Colors.black45, blurRadius: 10)],
+                        ),
+                        child: const Icon(Icons.settings, color: Colors.white, size: 22),
+                      ),
+                    ),
+                  ],
                 ),
               ),
 
@@ -554,6 +605,60 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
               if (isEmergency)
                 Positioned.fill(
                   child: EmergencyAlertOverlayWidget(alert: _config!.emergency!),
+                ),
+
+              // ==============================================================
+              // الطبقة 7: إشعار نمط التوسيع والتقليص المختار (HUD Pill Toast)
+              // ==============================================================
+              if (_fitModeNotification != null)
+                Positioned(
+                  top: 24,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0C1427).withValues(alpha: 0.90),
+                        borderRadius: BorderRadius.circular(30),
+                        border: Border.all(
+                          color: const Color(0xFF00E5FF).withValues(alpha: 0.60),
+                          width: 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF00E5FF).withValues(alpha: 0.25),
+                            blurRadius: 20,
+                            spreadRadius: 2,
+                          ),
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.5),
+                            blurRadius: 15,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            VideoFitService().currentModeIcon,
+                            color: const Color(0xFF00E5FF),
+                            size: 20,
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            _fitModeNotification!,
+                            style: GoogleFonts.cairo(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
             ],
           ),

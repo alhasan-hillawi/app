@@ -5,6 +5,7 @@ import '../../../models/split_screen_model.dart';
 import '../../../models/text_announcement_model.dart';
 import '../../../services/api_service.dart';
 import '../../../services/media_cache_service.dart';
+import '../../../services/video_fit_service.dart';
 import '../../../services/volume_service.dart';
 import 'web_view_signage_widget.dart';
 import 'text_announcement_slide_widget.dart';
@@ -167,22 +168,28 @@ class _ZoneMediaSlotWidgetState extends State<ZoneMediaSlotWidget> {
       return Container(color: Colors.black);
     }
 
-    // 4. تشغيل الفيديو ملء خانة المنطقة بالكامل (Edge-to-Edge)
+    // 4. تشغيل الفيديو بنمط الملاءمة المختار
     final videoSize = _videoController!.value.size;
     final width = videoSize.width > 0 ? videoSize.width : 1920.0;
     final height = videoSize.height > 0 ? videoSize.height : 1080.0;
 
-    return ClipRect(
-      child: SizedBox.expand(
-        child: FittedBox(
-          fit: BoxFit.cover,
-          child: SizedBox(
-            width: width,
-            height: height,
-            child: VideoPlayer(_videoController!),
+    return ValueListenableBuilder<VideoFitMode>(
+      valueListenable: VideoFitService().fitModeNotifier,
+      builder: (context, _, __) {
+        final fit = VideoFitService().currentBoxFit;
+        return ClipRect(
+          child: SizedBox.expand(
+            child: FittedBox(
+              fit: fit,
+              child: SizedBox(
+                width: width,
+                height: height,
+                child: VideoPlayer(_videoController!),
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 

@@ -50,8 +50,14 @@ class VideoPreloadManager {
 
       // 2. استخدام ملف الكاش المحلي لضمان عدم حدوث أي تقطيع (60 FPS local playback)
       final controller = cachedFile != null
-          ? VideoPlayerController.file(cachedFile)
-          : VideoPlayerController.networkUrl(Uri.parse(url));
+          ? VideoPlayerController.file(
+              cachedFile,
+              videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+            )
+          : VideoPlayerController.networkUrl(
+              Uri.parse(url),
+              videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+            );
 
       await controller.initialize();
       controller.setLooping(true);
