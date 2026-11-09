@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:dio/dio.dart';
 import '../../services/api_service.dart';
 import '../../services/device_info_service.dart';
+import '../../services/pin_security_service.dart';
 import '../player/signage_player_screen.dart';
 import '../common/app_error_dialog.dart';
 import 'server_config_screen.dart';
@@ -30,7 +31,9 @@ class PairingScreen extends StatefulWidget {
 
 class _PairingScreenState extends State<PairingScreen> {
   final TextEditingController _codeController = TextEditingController();
+  final TextEditingController _pinController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
+  final FocusNode _pinFocusNode = FocusNode();
   final DeviceInfoService _deviceInfo = DeviceInfoService();
   bool _isLoading = false;
   String? _errorMessage;
@@ -45,7 +48,9 @@ class _PairingScreenState extends State<PairingScreen> {
   @override
   void dispose() {
     _codeController.dispose();
+    _pinController.dispose();
     _focusNode.dispose();
+    _pinFocusNode.dispose();
     super.dispose();
   }
 
@@ -64,6 +69,12 @@ class _PairingScreenState extends State<PairingScreen> {
 
     if (code.isEmpty || code.length < 4) {
       setState(() => _errorMessage = "يرجى إدخال رمز اقتران صحيح بتنسيق SC-XXXX (مثل: SC-BDXV)");
+      return;
+    }
+
+    final pin = _pinController.text.trim();
+    if (pin.length != 4) {
+      setState(() => _errorMessage = "رمز PIN للحماية إجباري ويجب أن يتكون من 4 أرقام بالضبط");
       return;
     }
 
@@ -86,8 +97,9 @@ class _PairingScreenState extends State<PairingScreen> {
       final data = response.data['data'];
       final token = data['token'];
 
-      // حفظ التوكن
+      // حفظ التوكن ورمز PIN للحماية
       await widget.apiService.saveToken(token);
+      await PinSecurityService().savePin(pin);
 
       if (mounted) {
         Navigator.pushReplacement(
@@ -400,6 +412,81 @@ class _PairingScreenState extends State<PairingScreen> {
                                     ),
                                     counterText: "",
                                     contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                                    border: InputBorder.none,
+                                  ),
+                                  onSubmitted: (_) => _pinFocusNode.requestFocus(),
+                                ),
+                              ),
+
+                              const SizedBox(height: 18),
+
+                              // و. حقل رمز PIN للحماية وقفل الإعدادات (إجباري 4 أرقام)
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.lock_outline_rounded, color: Color(0xFF00E5FF), size: 18),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    "رمز PIN لحماية الإعدادات (4 أرقام - إجباري)",
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.cairo(
+                                      fontSize: (subtitleFontSize * 0.95).clamp(12.5, 16.0),
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              const SizedBox(height: 4),
+
+                              Text(
+                                "قفل لحماية الشاشة ومنع الوصول أو التلاعب بإعدادات التطبيق",
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.cairo(
+                                  fontSize: (subtitleFontSize * 0.78).clamp(10.5, 13.0),
+                                  color: const Color(0xFF94A3B8),
+                                ),
+                              ),
+
+                              const SizedBox(height: 12),
+
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF060B18),
+                                  borderRadius: BorderRadius.circular(18),
+                                  border: Border.all(
+                                    color: const Color(0xFF00E5FF).withValues(alpha: 0.40),
+                                    width: 1.4,
+                                  ),
+                                ),
+                                child: TextField(
+                                  controller: _pinController,
+                                  focusNode: _pinFocusNode,
+                                  keyboardType: TextInputType.number,
+                                  obscureText: true,
+                                  obscuringCharacter: '●',
+                                  textAlign: TextAlign.center,
+                                  maxLength: 4,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                    LengthLimitingTextInputFormatter(4),
+                                  ],
+                                  style: GoogleFonts.cairo(
+                                    fontSize: (inputFontSize * 0.85).clamp(20.0, 28.0),
+                                    letterSpacing: 12,
+                                    fontWeight: FontWeight.w900,
+                                    color: const Color(0xFF00F0FF),
+                                  ),
+                                  decoration: InputDecoration(
+                                    hintText: "••••",
+                                    hintStyle: TextStyle(
+                                      fontSize: (inputFontSize * 0.75).clamp(18.0, 24.0),
+                                      letterSpacing: 10,
+                                      color: Colors.white24,
+                                    ),
+                                    counterText: "",
+                                    contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                                     border: InputBorder.none,
                                   ),
                                   onSubmitted: (_) => _submitPairing(),

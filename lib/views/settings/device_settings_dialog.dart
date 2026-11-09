@@ -8,6 +8,7 @@ import '../../services/cache_cleaner_service.dart';
 import '../../services/video_fit_service.dart';
 import '../../services/volume_service.dart';
 import '../setup/server_config_screen.dart';
+import '../common/pin_dialog.dart';
 
 class DeviceSettingsDialog extends StatefulWidget {
   final ApiService apiService;
@@ -377,7 +378,34 @@ class _DeviceSettingsDialogState extends State<DeviceSettingsDialog> {
                           ),
                           const SizedBox(height: 8),
 
-                          // 6. تعديل رابط الخادم
+                          // 6. تغيير رمز PIN للحماية
+                          _buildActionTile(
+                            icon: Icons.pin_rounded,
+                            iconColor: const Color(0xFF00E5FF),
+                            title: "قفل الشاشة ورمز PIN:",
+                            subtitle: "تغيير رمز PIN لقفل الشاشة وحماية الإعدادات",
+                            actionText: "تغيير PIN",
+                            actionColor: const Color(0xFF0C243B),
+                            onAction: () async {
+                              final scaffoldMessenger = ScaffoldMessenger.of(context);
+                              final changed = await PinChangeDialog.show(context);
+                              if (changed && mounted) {
+                                scaffoldMessenger.showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      "تم تغيير رمز PIN للحماية بنجاح!",
+                                      style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
+                                    ),
+                                    backgroundColor: Colors.green.shade700,
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 8),
+
+                          // 7. تعديل رابط الخادم
                           _buildActionTile(
                             icon: Icons.cloud_sync_rounded,
                             iconColor: Colors.indigoAccent,

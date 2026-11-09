@@ -15,6 +15,7 @@ import '../../models/text_announcement_model.dart';
 import '../settings/device_settings_dialog.dart';
 import '../setup/pairing_screen.dart';
 import '../setup/server_config_screen.dart';
+import '../common/pin_dialog.dart';
 import 'widgets/split_screen_multi_video_widget.dart';
 import 'widgets/web_view_signage_widget.dart';
 import 'widgets/single_media_widget.dart';
@@ -363,7 +364,11 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
     });
   }
 
-  void _openSettings() {
+  void _openSettings() async {
+    // قفل الحماية: التحقق من رمز PIN قبل فتح الإعدادات لمنع التلاعب
+    final isAuthorized = await PinVerificationDialog.show(context);
+    if (!isAuthorized || !mounted) return;
+
     DeviceSettingsDialog.show(context, widget.apiService, () {
       _telemetryService.stop();
       Navigator.pushReplacement(
