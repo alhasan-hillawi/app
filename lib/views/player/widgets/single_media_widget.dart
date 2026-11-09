@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../services/api_service.dart';
+import '../../../services/media_cache_service.dart';
 import '../../../services/volume_service.dart';
 import '../../../services/video_preload_manager.dart';
 
@@ -71,8 +72,17 @@ class _SingleMediaWidgetState extends State<SingleMediaWidget> {
       return;
     }
 
-    // 2. إذا لم يكن محملاً مسبقاً، يتم تهيئته مباشرة وبأعلى سرعة مع إخفاء أي علامات انتظار
-    _videoController = VideoPlayerController.networkUrl(Uri.parse(normalized));
+    // 2. فحص ما إذا كان الفيديو مخزناً مسبقاً في الكاش المحلي (Local Storage Cache)
+    final cachedFile = await MediaCacheService().getCachedFile(normalized);
+    if (cachedFile != null) {
+      debugPrint('[SingleMedia] Playing video smoothly from local cache: ${cachedFile.path}');
+      _videoController = VideoPlayerController.file(cachedFile);
+    } else {
+      // إذا لم يكتمل تحميله بعد، البدء بالتحميل في الخلفية والتشغيل المؤقت من الشبكة
+      MediaCacheService().downloadAndCache(normalized);
+      _videoController = VideoPlayerController.networkUrl(Uri.parse(normalized));
+    }
+
     try {
       await _videoController!.initialize();
       _videoController!.setLooping(true);

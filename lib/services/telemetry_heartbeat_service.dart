@@ -13,15 +13,15 @@ enum DeviceSyncStatus {
 }
 
 /// خدمة القياس عن بُعد والمزامنة الحية مع النظام المركزي
-/// تقوم بفحص الاتصال بالإنترنت وإرسال نبضة المزامنة كل 5 ثوانٍ
+/// تقوم بفحص الاتصال بالإنترنت وإرسال نبضة المزامنة كل 10 ثوانٍ
 class TelemetryHeartbeatService {
   final ApiService apiService;
   final ValueNotifier<DeviceSyncStatus> statusNotifier = ValueNotifier(DeviceSyncStatus.onlineSynced);
   final ValueNotifier<int> localRevisionNotifier = ValueNotifier(0);
   final ValueNotifier<int> serverRevisionNotifier = ValueNotifier(0);
 
-  // تم تقليل دورة المزامنة إلى 5 ثوانٍ لتحديث فوري لحظي للشاشات
-  static const Duration defaultHeartbeatInterval = Duration(seconds: 5);
+  // دورة المزامنة والنبضة الدورية كل 10 ثوانٍ لضمان استقرار البث ومنع التقطيع
+  static const Duration defaultHeartbeatInterval = Duration(seconds: 10);
 
   Timer? _heartbeatTimer;
   StreamSubscription? _connectivitySubscription;
@@ -38,14 +38,14 @@ class TelemetryHeartbeatService {
     localRevisionNotifier.value = initialRevision;
   }
 
-  /// بدء تشغيل مؤقت المزامنة كل 5 ثوانٍ مع مراقبة حية لشبكة الجهاز
+  /// بدء تشغيل مؤقت المزامنة كل 10 ثوانٍ مع مراقبة حية لشبكة الجهاز
   void start() {
     stop();
 
     // 1. فحص الاتصال وإرسال نبضة مزامنة فورية عند بدء التشغيل
     _sendPulse();
 
-    // 2. جدولة النبضة الدورية كل 5 ثوانٍ
+    // 2. جدولة النبضة الدورية كل 10 ثوانٍ
     _heartbeatTimer = Timer.periodic(defaultHeartbeatInterval, (_) => _sendPulse());
 
     // 3. مراقبة حالة الشبكة: عند انقطاع الاتصال يطلب الاتصال فوراً، وعند عودته يعيد فحص المزامنة فوراً

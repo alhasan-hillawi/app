@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:video_player/video_player.dart';
 import '../models/signage_models.dart';
 import 'api_service.dart';
+import 'media_cache_service.dart';
 import 'volume_service.dart';
 
 /// مدير التحميل المسبق وتجهيز الفيديوهات في الذاكرة (Seamless Video Preload Engine)
@@ -29,7 +30,7 @@ class VideoPreloadManager {
     }
   }
 
-  /// تجهيز وتحميل مقطع فيديو مسبقاً في الخلفية
+  /// تجهيز وتحميل مقطع فيديو مسبقاً في الخلفية من الكاش المحلي
   Future<void> preloadVideo(String rawUrl) async {
     final url = ApiService.normalizeMediaUrl(rawUrl).trim();
     if (url.isEmpty || _pool.containsKey(url) || _pendingUrls.contains(url)) {
@@ -43,7 +44,15 @@ class VideoPreloadManager {
 
     _pendingUrls.add(url);
     try {
-      final controller = VideoPlayerController.networkUrl(Uri.parse(url));
+      // 1. جلب الملف المخزن محلياً أو بدء تحميله فوراً
+      final cachedFile = await MediaCacheService().getCachedFile(url) ??
+          await MediaCacheService().downloadAndCache(url);
+
+      // 2. استخدام ملف الكاش المحلي لضمان عدم حدوث أي تقطيع (60 FPS local playback)
+      final controller = cachedFile != null
+          ? VideoPlayerController.file(cachedFile)
+          : VideoPlayerController.networkUrl(Uri.parse(url));
+
       await controller.initialize();
       controller.setLooping(true);
       controller.setVolume(VolumeService().effectiveVolume);
@@ -51,7 +60,7 @@ class VideoPreloadManager {
       await controller.pause();
 
       _pool[url] = controller;
-      debugPrint('[VideoPreload] Pre-warmed video ready in 0ms: $url');
+      debugPrint('[VideoPreload] Pre-warmed video ready (from ${cachedFile != null ? "local cache" : "network"}): $url');
     } catch (e) {
       debugPrint('[VideoPreload] Note: preload skipped for $url: $e');
     } finally {

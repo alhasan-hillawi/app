@@ -9,6 +9,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 import 'services/api_service.dart';
+import 'services/media_cache_service.dart';
 import 'services/volume_service.dart';
 import 'views/common/app_error_dialog.dart';
 import 'views/setup/pairing_screen.dart';
@@ -28,6 +29,11 @@ void main() async {
   // تهيئة خدمة الصوت واستعادة الإعدادات المحفوظة
   try {
     await VolumeService().init();
+  } catch (_) {}
+
+  // تهيئة خدمة تخزين وكاش الفيديوهات محلياً على القرص لمنع أي تقطيع
+  try {
+    await MediaCacheService().init();
   } catch (_) {}
 
   // تهيئة منصة WebView لضمان عملها بسلاسة على كافة المنصات وتفادي استثناءات المنصة

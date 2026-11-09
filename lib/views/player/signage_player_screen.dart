@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../services/api_service.dart';
 import '../../services/cache_cleaner_service.dart';
+import '../../services/media_cache_service.dart';
 import '../../services/telemetry_heartbeat_service.dart';
 import '../../services/video_preload_manager.dart';
 import '../../models/signage_models.dart';
@@ -122,6 +123,12 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
           });
 
           _applyOrientation(newConfig.orientation);
+
+          // بدء التخزين المسبق لفيديوهات القائمة في الكاش المحلي لضمان عدم حدوث أي تقطيع
+          if (newConfig.playlist?.items != null) {
+            MediaCacheService().cachePlaylistVideos(newConfig.playlist!.items);
+          }
+
           _startPlaylistCycle();
         }
       }
@@ -136,7 +143,7 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
           );
         }
       } else {
-        // جدولة إعادة فحص المزامنة مع النظام كل 5 ثوانٍ تلقائياً
+        // جدولة إعادة فحص المزامنة مع النظام كل 10 ثوانٍ تلقائياً
         _scheduleInitialSyncRetry();
       }
     }
@@ -145,7 +152,7 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
   void _scheduleInitialSyncRetry() {
     _initialSyncRetryTimer?.cancel();
     if (_config != null) return;
-    _initialSyncRetryTimer = Timer(const Duration(seconds: 5), () {
+    _initialSyncRetryTimer = Timer(const Duration(seconds: 10), () {
       if (mounted && _config == null) {
         _initialSync();
       }
@@ -256,11 +263,32 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
     }
   }
 
+  bool _isPlaylistChanged(List<PlaylistItemModel> oldItems, List<PlaylistItemModel> newItems) {
+    if (oldItems.length != newItems.length) return true;
+    for (int i = 0; i < oldItems.length; i++) {
+      final oldItem = oldItems[i];
+      final newItem = newItems[i];
+      if (oldItem.id != newItem.id ||
+          oldItem.url != newItem.url ||
+          oldItem.duration != newItem.duration ||
+          oldItem.type != newItem.type) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   void _onServerSyncRequired(Map<String, dynamic> rawConfig) {
     if (!mounted) return;
     final newConfig = ScreenConfig.fromJson(rawConfig);
 
     _inactivityCountdownTimer?.cancel();
+
+    final oldItems = _config?.playlist?.items ?? [];
+    final newItems = newConfig.playlist?.items ?? [];
+    final bool playlistChanged = _config == null ||
+        _config?.playlist?.id != newConfig.playlist?.id ||
+        _isPlaylistChanged(oldItems, newItems);
 
     setState(() {
       _config = newConfig;
@@ -269,13 +297,15 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
 
     _applyOrientation(newConfig.orientation);
 
-    // إذا تغيرت عناصر العرض نتحقق من المؤشر ونستأنف الدورة
-    final items = newConfig.playlist?.items ?? [];
-    VideoPreloadManager().pruneUnused(items);
-    if (items.isNotEmpty && _currentItemIndex >= items.length) {
-      _currentItemIndex = 0;
+    // إذا لم تتغير قائمة التشغيل، نبقي الفيديو الحالي يعمل بسلاسة دون أي انقطاع
+    if (playlistChanged) {
+      VideoPreloadManager().pruneUnused(newItems);
+      MediaCacheService().cachePlaylistVideos(newItems);
+      if (newItems.isNotEmpty && _currentItemIndex >= newItems.length) {
+        _currentItemIndex = 0;
+      }
+      _startPlaylistCycle();
     }
-    _startPlaylistCycle();
   }
 
   void _applyOrientation(String orientation) {
@@ -360,7 +390,7 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  "يطلب التطبيق الاتصال بالإنترنت - يتم إعادة فحص المزامنة مع النظام كل 5 ثوانٍ تلقائياً",
+                  "يطلب التطبيق الاتصال بالإنترنت - يتم إعادة فحص المزامنة مع النظام كل 10 ثوانٍ تلقائياً",
                   textAlign: TextAlign.center,
                   style: GoogleFonts.cairo(color: Colors.white70, fontSize: 12),
                 ),
@@ -542,7 +572,7 @@ class _SignagePlayerScreenState extends State<SignagePlayerScreen> {
         switch (status) {
           case DeviceSyncStatus.onlineSynced:
             beaconColor = Colors.greenAccent;
-            tip = "متصل ومتزامن (كل 5ث)";
+            tip = "متصل ومتزامن (كل 10ث)";
             break;
           case DeviceSyncStatus.syncing:
             beaconColor = Colors.cyanAccent;

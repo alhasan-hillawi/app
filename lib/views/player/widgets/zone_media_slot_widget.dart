@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../models/split_screen_model.dart';
 import '../../../models/text_announcement_model.dart';
 import '../../../services/api_service.dart';
+import '../../../services/media_cache_service.dart';
 import '../../../services/volume_service.dart';
 import 'web_view_signage_widget.dart';
 import 'text_announcement_slide_widget.dart';
@@ -46,10 +47,20 @@ class _ZoneMediaSlotWidgetState extends State<ZoneMediaSlotWidget> {
   Future<void> _initVideo() async {
     final normalizedUrl = ApiService.normalizeMediaUrl(widget.zone.url);
     try {
-      final controller = VideoPlayerController.networkUrl(
-        Uri.parse(normalizedUrl),
-        videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
-      );
+      final cachedFile = await MediaCacheService().getCachedFile(normalizedUrl);
+      final controller = cachedFile != null
+          ? VideoPlayerController.file(
+              cachedFile,
+              videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+            )
+          : VideoPlayerController.networkUrl(
+              Uri.parse(normalizedUrl),
+              videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+            );
+
+      if (cachedFile == null) {
+        MediaCacheService().downloadAndCache(normalizedUrl);
+      }
 
       await controller.initialize();
       controller.setLooping(true);
